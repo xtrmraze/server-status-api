@@ -1,30 +1,28 @@
 const express = require('express');
-const axios = require('axios');
+const fetch = require('node-fetch');
+
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Simple API route to check server status
-app.get('/status', async (req, res) => {
-    const { ip, port: serverPort = 19132 } = req.query;
-    
+// Main route
+app.get('/', async (req, res) => {
+    const ip = req.query.ip;
+    const portQuery = req.query.port || 19132;
+
     if (!ip) {
-        return res.status(400).json({ error: 'Missing IP address.' });
+        return res.status(400).json({ error: 'IP is required' });
     }
 
     try {
-        const response = await axios.get(`https://api.mcstatus.io/v2/status/bedrock/${ip}:${serverPort}`);
-        res.json(response.data);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch server status.' });
+        const response = await fetch(`https://api.mcstatus.io/v2/status/bedrock/${ip}:${portQuery}`);
+        const data = await response.json();
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch server status' });
     }
 });
 
-// Basic home page
-app.get('/', (req, res) => {
-    res.send('Server Status API is running.');
-});
-
-// Start server
+// Start the server
 app.listen(port, () => {
-    console.log(`Server Status API is live on port ${port}`);
+    console.log(`Server running on port ${port}`);
 });
